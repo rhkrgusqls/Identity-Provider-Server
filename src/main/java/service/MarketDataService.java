@@ -7,10 +7,10 @@ import java.util.Map;
 
 @Service
 public class MarketDataService {
-    private final TokenService tokenService;
+    private final service.TokenService tokenService;
 
     @Autowired
-    public MarketDataService(TokenService tokenService) {
+    public MarketDataService(service.TokenService tokenService) {
         this.tokenService = tokenService;
     }
 

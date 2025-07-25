@@ -18,29 +18,15 @@ public class ParsingController {
 
     public static String controllerHandle(String input) {
         String opcode = ParsingModule.extractOpcode(input);
+        System.out.println("[DEBUG] 추출된 opcode: '" + opcode + "'");
         DataStruct data = ParsingModule.extractData(input);
         String senderId = ParsingModule.extractSenderUserId(input);
 
-        MainController controller = new MainController();
+        controller.MainController controller = new controller.MainController();
 
         switch (opcode) {
-            case "GET_ACCESS_TOKEN":
-                return controller.getAccessToken(data);
-
-            case "PRODUCT_SEARCH":
-                return controller.searchProducts(data, senderId);
-
-            case "SearchData":
-                return controller.getProductDetails(data, senderId);
-
             case "LOGIN":
                 return controller.login(data);
-
-            case "SAVE_DATA":
-                return controller.saveData(data, senderId);
-
-            case "GET_PUBLIC_KEY":
-                return controller.getPublicKey();
 
             default:
                 return "error%UnknownOpcode";
