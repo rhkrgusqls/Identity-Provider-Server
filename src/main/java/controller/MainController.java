@@ -15,6 +15,7 @@ public class MainController {
         Map<String, String> map = new java.util.HashMap<>();
         if (data.id != null && data.id.length > 0) map.put("id", data.id[0]);
         if (data.password != null && data.password.length > 0) map.put("password", data.password[0]);
+        if (data.userAddress != null && data.userAddress.length > 0) map.put("userAddress", data.userAddress[0]); // userAddress 추가
         // 필요시 추가
         return map;
     }
@@ -64,6 +65,13 @@ public class MainController {
 
         // %login%&accessToken$실제토큰값 반환
         return "%login%&accessToken$" + tokenSet.get("accessToken") + "&accessToken$" + tokenSet.get("refreshToken");
+    }
+
+    public static String signup(DataStruct data) {
+        Map<String, String> paramMap = dataStructToMap(data);
+        AuthService authService = new TestAuthService(); // 실제 구현체 사용
+        boolean result = authService.signup(paramMap);
+        return result ? "[회원가입 완료]" : "[회원가입 실패]";
     }
 
     public static String getAccessTokenPublicKey() {

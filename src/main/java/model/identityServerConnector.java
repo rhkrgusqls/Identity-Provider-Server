@@ -60,4 +60,14 @@ public class identityServerConnector {
             return null;
         }
     }
+
+    public boolean requestSignupToIdentityServer(java.util.Map<String, String> params) {
+        UserDAO userDAO = new UserDAO();
+        UserDTO userDTO = new UserDTO(
+            params.get("id"),
+            params.get("password"),
+            params.get("userAddress")
+        );
+        return userDAO.addUser(userDTO);
+    }
 }

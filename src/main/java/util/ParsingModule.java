@@ -48,6 +48,7 @@ public class ParsingModule {
         data.phoneNum = toArray(tempMap.get("phoneNum"));
         data.chatRoomNum = toArray(tempMap.get("chatRoomNum"));
         data.chatData = toArray(tempMap.get("chatData"));
+        data.userAddress = toArray(tempMap.get("userAddress")); // 주소필드 추가
 
         return data;
     }

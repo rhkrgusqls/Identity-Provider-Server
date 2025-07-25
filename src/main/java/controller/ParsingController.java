@@ -9,6 +9,7 @@ public class ParsingController {
     public static class DataStruct {
         public String[] id;
         public String[] password;
+        public String[] userAddress; // userAddress 필드 추가
         public String[] name;
         public String[] profileDir;
         public String[] phoneNum;
@@ -27,7 +28,8 @@ public class ParsingController {
         switch (opcode) {
             case "LOGIN":
                 return controller.login(data);
-
+            case "SIGNUP":
+                return controller.signup(data); // SIGNUP 분기 추가
             default:
                 return "error%UnknownOpcode";
         }
