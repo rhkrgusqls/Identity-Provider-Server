@@ -40,8 +40,8 @@ public class HTTPSConnect {
                  }
              });
 
-            ChannelFuture f = b.bind(2000).sync();
-            System.out.println("[Log][Server] Netty HTTPS server started on port 2000");
+            ChannelFuture f = b.bind(2010).sync();
+            System.out.println("[Log][Server] Netty HTTPS server started on port 2010");
             f.channel().closeFuture().sync();
 
         } finally {

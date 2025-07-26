@@ -44,10 +44,6 @@ public class ParsingModule {
         data.id = toArray(tempMap.get("id"));
         data.password = toArray(tempMap.get("password"));
         data.name = toArray(tempMap.get("name"));
-        data.profileDir = toArray(tempMap.get("profileDir"));
-        data.phoneNum = toArray(tempMap.get("phoneNum"));
-        data.chatRoomNum = toArray(tempMap.get("chatRoomNum"));
-        data.chatData = toArray(tempMap.get("chatData"));
 
         return data;
     }

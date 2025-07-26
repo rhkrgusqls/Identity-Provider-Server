@@ -21,9 +21,11 @@ public class MainConsole extends ChannelInboundHandlerAdapter {
 
             // ✳ ParsingController 로직 호출
             String response = ParsingController.controllerHandle(fullCommand);
+            System.out.println("[DEBUG] 서버 응답 데이터: '" + response + "'");
 
-            // ✳ 응답 전송
-            ctx.writeAndFlush(Unpooled.copiedBuffer(response + "\n", CharsetUtil.UTF_8));
+                // ✳ 응답 전송
+                ctx.writeAndFlush(Unpooled.copiedBuffer(response + "\n", CharsetUtil.UTF_8));
+            System.out.println("[DEBUG] 전송완료");
         } catch (Exception e) {
             String errorMsg = "error%ExceptionOccurred: " + e.getMessage();
             ctx.writeAndFlush(Unpooled.copiedBuffer(errorMsg + "\n", CharsetUtil.UTF_8));

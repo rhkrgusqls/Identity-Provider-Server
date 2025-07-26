@@ -2,177 +2,158 @@ package service;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.SignatureException;
-import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import jakarta.annotation.PostConstruct;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
-import java.security.KeyPair;
+import java.io.*;
+import java.security.*;
 import java.util.Date;
-// 생략된 import 유지
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.security.KeyPairGenerator;
-import java.security.KeyPair;
-import java.security.PublicKey;
-import java.security.PrivateKey;
-import java.security.Security;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.util.Map;
-import io.jsonwebtoken.*;
+
 @Service
-public class TokenService implements AuthService {
+public class TokenService {
 
-    // application.properties에서 주입
-    @Value("${jwt.expiration.access-token:3600000}")
-    private long accessTokenExpirationTime;
+    // 설정값 하드코딩 (프로퍼티 대신)
+    private final long refreshTokenExpiration = 604800000; // 7일 (밀리초)
+    private final String privateKeyFile = "refresh_private.pem";
+    private final String publicKeyFile = "refresh_public.pem";
 
-    private KeyPair keyACPair;
-    private KeyPair keyREPair;
+    private KeyPair refreshKeyPair;
 
-    private static final String AC_PRIVATE = "ac_private.pem";
-    private static final String AC_PUBLIC = "ac_public.pem";
-    private static final String RE_PRIVATE = "re_private.pem";
-    private static final String RE_PUBLIC = "re_public.pem";
+    public TokenService() {
+        loadOrCreateKeyPair();
+    }
 
-    @PostConstruct
-    public void init() {
+    private void loadOrCreateKeyPair() {
         try {
-            this.keyACPair = loadKeyPair(AC_PUBLIC, AC_PRIVATE);
-            if (!isKeyPairValid(this.keyACPair)) {
-                this.keyACPair = generateAndSaveKeyPair(AC_PUBLIC, AC_PRIVATE);
+            File pubFile = new File(publicKeyFile);
+            File privFile = new File(privateKeyFile);
+
+            boolean needGenerate = false;
+
+            if (!pubFile.exists() || !privFile.exists()) {
+                needGenerate = true;
+            } else {
+                // 파일 존재하지만 내용이 비어있거나 null 체크
+                if (pubFile.length() == 0 || privFile.length() == 0) {
+                    needGenerate = true;
+                } else {
+                    try {
+                        this.refreshKeyPair = loadKeyPairFromFiles();
+                        // 만약 키가 null이면 재생성
+                        if (this.refreshKeyPair == null
+                                || this.refreshKeyPair.getPublic() == null
+                                || this.refreshKeyPair.getPrivate() == null) {
+                            needGenerate = true;
+                        }
+                    } catch (Exception e) {
+                        // 로딩 실패시 새로 생성 플래그
+                        needGenerate = true;
+                    }
+                }
             }
 
-            this.keyREPair = loadKeyPair(RE_PUBLIC, RE_PRIVATE);
-            if (!isKeyPairValid(this.keyREPair)) {
-                this.keyREPair = generateAndSaveKeyPair(RE_PUBLIC, RE_PRIVATE);
+            if (needGenerate) {
+                generateAndSaveKeyPair();
             }
-
         } catch (Exception e) {
             throw new RuntimeException("키 초기화 실패", e);
         }
     }
 
-    private boolean isKeyPairValid(KeyPair keyPair) {
-        return keyPair != null && keyPair.getPrivate() != null && keyPair.getPublic() != null;
-    }
-
-    public String extractUserIdFromRefreshToken(String refreshToken) {
-        try {
-            Claims claims = Jwts.parser().verifyWith(keyREPair.getPublic()).build().parseSignedClaims(refreshToken).getPayload();
-            return claims.getSubject();
-        } catch (JwtException e) {
-            throw new IllegalArgumentException("Invalid refresh token", e);
-        }
-    }
-
-    public void setKeyACPairByPEMStrings(String publicPem, String privatePem) throws Exception {
-        try (
-                PEMParser pubParser = new PEMParser(new StringReader(publicPem));
-                PEMParser privParser = new PEMParser(new StringReader(privatePem))
-        ) {
-            JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
-
-            PublicKey publicKey = converter.getPublicKey((SubjectPublicKeyInfo) pubParser.readObject());
-            PrivateKey privateKey = converter.getPrivateKey((PrivateKeyInfo) privParser.readObject());
-
-            this.keyACPair = new KeyPair(publicKey, privateKey);
-
-            try (JcaPEMWriter pubWriter = new JcaPEMWriter(new FileWriter(AC_PUBLIC));
-                 JcaPEMWriter privWriter = new JcaPEMWriter(new FileWriter(AC_PRIVATE))) {
-                pubWriter.writeObject(publicKey);
-                privWriter.writeObject(privateKey);
-            }
-        }
-    }
-
-    private KeyPair generateAndSaveKeyPair(String pubFile, String privFile) throws Exception {
+    private void generateAndSaveKeyPair() throws Exception {
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
         keyGen.initialize(2048);
         KeyPair keyPair = keyGen.generateKeyPair();
 
-        try (JcaPEMWriter pubWriter = new JcaPEMWriter(new FileWriter(pubFile));
-             JcaPEMWriter privWriter = new JcaPEMWriter(new FileWriter(privFile))) {
+        try (JcaPEMWriter pubWriter = new JcaPEMWriter(new FileWriter(publicKeyFile));
+             JcaPEMWriter privWriter = new JcaPEMWriter(new FileWriter(privateKeyFile))) {
             pubWriter.writeObject(keyPair.getPublic());
             privWriter.writeObject(keyPair.getPrivate());
         }
 
-        return keyPair;
+        this.refreshKeyPair = keyPair;
+        System.out.println("[TokenService] 새 키 쌍 생성 및 저장 완료");
     }
 
-    private KeyPair loadKeyPair(String pubFile, String privFile) throws Exception {
-        PublicKey publicKey;
-        PrivateKey privateKey;
+    private KeyPair loadKeyPairFromFiles() throws Exception {
+        try (PEMParser pubParser = new PEMParser(new FileReader(publicKeyFile));
+             PEMParser privParser = new PEMParser(new FileReader(privateKeyFile))) {
 
-        try (PEMParser pubReader = new PEMParser(new FileReader(pubFile));
-             PEMParser privReader = new PEMParser(new FileReader(privFile))) {
+            JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
 
-            JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
+            Object pubObj = pubParser.readObject();
+            PublicKey publicKey;
+            if (pubObj instanceof SubjectPublicKeyInfo) {
+                publicKey = converter.getPublicKey((SubjectPublicKeyInfo) pubObj);
+            } else if (pubObj instanceof PEMKeyPair) {
+                publicKey = converter.getPublicKey(((PEMKeyPair) pubObj).getPublicKeyInfo());
+            } else {
+                throw new IllegalArgumentException("Unexpected public key format: " + pubObj.getClass());
+            }
 
-            SubjectPublicKeyInfo pubInfo = (SubjectPublicKeyInfo) pubReader.readObject();
-            publicKey = converter.getPublicKey(pubInfo);
+            Object privObj = privParser.readObject();
+            PrivateKey privateKey;
+            if (privObj instanceof PrivateKeyInfo) {
+                privateKey = converter.getPrivateKey((PrivateKeyInfo) privObj);
+            } else if (privObj instanceof PEMKeyPair) {
+                privateKey = converter.getPrivateKey(((PEMKeyPair) privObj).getPrivateKeyInfo());
+            } else {
+                throw new IllegalArgumentException("Unexpected private key format: " + privObj.getClass());
+            }
 
-            PrivateKeyInfo privInfo = (PrivateKeyInfo) privReader.readObject();
-            privateKey = converter.getPrivateKey(privInfo);
+            return new KeyPair(publicKey, privateKey);
         }
-
-        return new KeyPair(publicKey, privateKey);
     }
 
-    public String generateAccessToken(String username) {
+    @Scheduled(fixedRate = 604800000) // 7일마다 키 재생성
+    public void regenerateKeysPeriodically() {
+        try {
+            generateAndSaveKeyPair();
+            System.out.println("[TokenService] 키 재생성 스케줄러 실행");
+        } catch (Exception e) {
+            System.err.println("[TokenService] 키 재생성 실패: " + e.getMessage());
+        }
+    }
+
+    public String generateRefreshToken(String username) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + accessTokenExpirationTime);
+        Date expiryDate = new Date(now.getTime() + refreshTokenExpiration);
 
         return Jwts.builder()
-                .subject(username)
-                .issuedAt(now)
-                .expiration(expiryDate)
-                .signWith(keyACPair.getPrivate())
+                .setSubject(username)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(refreshKeyPair.getPrivate(), SignatureAlgorithm.RS256)
                 .compact();
     }
 
-    public Claims validateAndGetClaims(String token) {
-        try {
-            return Jwts.parser()
-                    .verifyWith(keyACPair.getPublic())
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-        } catch (JwtException e) {
-            throw new IllegalArgumentException("유효하지 않는 또는 만료된 토큰입니다.", e);
-        }
-    }
-
-    public String getPublicKey() {
+    public String getRefreshPublicKeyPEM() {
         try (StringWriter sw = new StringWriter();
              JcaPEMWriter writer = new JcaPEMWriter(sw)) {
-            writer.writeObject(keyACPair.getPublic());
+            writer.writeObject(refreshKeyPair.getPublic());
             writer.flush();
             return sw.toString();
-        } catch (Exception e) {
-            throw new RuntimeException("공개키 반환 실패", e);
+        } catch (IOException e) {
+            throw new RuntimeException("공개키 PEM 반환 실패", e);
         }
     }
 
-    @Override
-    public boolean authenticate(String input) {
-        return false;
-    }
-
-    @Override
-    public boolean authenticate(Map<String, String> params) {
-        return AuthService.super.authenticate(params);
-    }
-
-    @Override
-    public boolean signup(Map<String, String> params) {
-        return AuthService.super.signup(params);
+    public String extractUsernameFromRefreshToken(String refreshToken) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(refreshKeyPair.getPublic())
+                    .build()
+                    .parseSignedClaims(refreshToken)
+                    .getPayload();
+            return claims.getSubject();
+        } catch (JwtException e) {
+            throw new IllegalArgumentException("유효하지 않은 리프레시 토큰", e);
+        }
     }
 }

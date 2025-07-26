@@ -10,10 +10,6 @@ public class ParsingController {
         public String[] id;
         public String[] password;
         public String[] name;
-        public String[] profileDir;
-        public String[] phoneNum;
-        public String[] chatRoomNum;
-        public String[] chatData;
     }
 
     public static String controllerHandle(String input) {
@@ -26,8 +22,9 @@ public class ParsingController {
 
         switch (opcode) {
             case "LOGIN":
-                return controller.login(data);
-
+                return controller.login(data.id[0], data.password[0]);
+            case "GET_REFRESH_PUBLIC_KEY":
+                return controller.getRefreshTokenPublicKey();
             default:
                 return "error%UnknownOpcode";
         }
