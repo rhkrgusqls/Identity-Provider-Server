@@ -14,4 +14,6 @@ public interface AuthService {
         // 실제 구현체에서 DB 중복 체크, 비밀번호 해시, 저장 등 구현 예정
         return true; // 임시로 항상 성공 반환
     }
+
+    boolean existsUser(String userId);
 } 

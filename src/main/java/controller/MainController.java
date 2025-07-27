@@ -44,7 +44,21 @@ public class MainController {
     public static String signup(ParsingController.DataStruct data) {
         Map<String, String> paramMap = dataStructToMap(data);
         AuthService authService = new TestAuthService(); // 실제 구현체 사용
+
+        String userId = paramMap.get("id");
+        if (userId == null || userId.isEmpty()) {
+            return "SIGNUP%&result$ERROR&message$Missing ID%";
+        }
+
+        if (authService.existsUser(userId)) {
+            return "SIGNUP%&result$ERROR&message$ID Already Exists%";
+        }
+
         boolean result = authService.signup(paramMap);
-        return result ? "[회원가입 완료]" : "[회원가입 실패]";
+        if (result) {
+            return "SIGNUP%&result$SUCCESS%";
+        } else {
+            return "SIGNUP%&result$ERROR&message$Signup Failed%";
+        }
     }
 }

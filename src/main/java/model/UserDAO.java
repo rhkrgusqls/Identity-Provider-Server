@@ -131,4 +131,22 @@ public class UserDAO {
             return false;
         }
     }
+
+    public boolean exists(String userId) {
+        String sql = "SELECT COUNT(*) FROM user WHERE userid = ?";
+        try (Connection conn = dbModule.getConnection("userdb");
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, userId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0; // 1 이상이면 존재
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false; // 예외 또는 결과 없으면 존재하지 않는 것으로 간주
+    }
 }
