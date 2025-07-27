@@ -121,17 +121,19 @@ public class TokenService {
         }
     }
 
-    public String generateRefreshToken(String username) {
+    public String generateRefreshToken(String userId, String username) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + refreshTokenExpiration);
 
         return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
+                .setSubject(userId)                 // sub: username
+                .claim("username", username)                  // 커스텀 claim 추가
+                .setIssuedAt(now)                     // iat
+                .setExpiration(expiryDate)            // exp
                 .signWith(refreshKeyPair.getPrivate(), SignatureAlgorithm.RS256)
                 .compact();
     }
+
 
     public String getRefreshPublicKeyPEM() {
         try (StringWriter sw = new StringWriter();
