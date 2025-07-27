@@ -50,6 +50,7 @@ public class ParsingModule {
         data.id = toArray(tempMap.get("id"));
         data.password = toArray(tempMap.get("password"));
         data.name = toArray(tempMap.get("name"));
+        data.userAddress = toArray(tempMap.get("userAddress"));
 
         return data;
     }

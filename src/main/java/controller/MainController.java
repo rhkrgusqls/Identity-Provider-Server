@@ -8,6 +8,14 @@ import service.TokenService;
 import java.util.Map;
 
 public class MainController {
+    private static Map<String, String> dataStructToMap(ParsingController.DataStruct data) {
+        Map<String, String> map = new java.util.HashMap<>();
+        if (data.id != null && data.id.length > 0) map.put("id", data.id[0]);
+        if (data.password != null && data.password.length > 0) map.put("password", data.password[0]);
+        if (data.userAddress != null && data.userAddress.length > 0) map.put("userAddress", data.userAddress[0]); // userAddress 추가
+        // 필요시 추가
+        return map;
+    }
 
     private final TokenService tokenService = new TokenService(); // 싱글톤 제거 후 일반 인스턴스 생성
 
@@ -39,8 +47,4 @@ public class MainController {
         boolean result = authService.signup(paramMap);
         return result ? "[회원가입 완료]" : "[회원가입 실패]";
     }
-
-    private static Map<String, String> dataStructToMap(ParsingController.DataStruct data) {
-    }
-
 }

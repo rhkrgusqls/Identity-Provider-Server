@@ -13,6 +13,7 @@ public class ParsingController {
         public String[] id;
         public String[] password;
         public String[] name;
+        public String[] userAddress;
     }
 
     public static String controllerHandle(String input) {
