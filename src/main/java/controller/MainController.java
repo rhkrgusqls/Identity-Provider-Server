@@ -1,7 +1,11 @@
 package controller;
 
 import model.UserDAO;
+import service.AuthService;
+import service.TestAuthService;
 import service.TokenService;
+
+import java.util.Map;
 
 public class MainController {
 
@@ -29,4 +33,14 @@ public class MainController {
         String publicKeyPem = tokenService.getRefreshPublicKeyPEM();
         return "refPublicKey%&refKey$" + publicKeyPem.replace("\r\n", "\\n").replace("\n", "\\n");
     }
+    public static String signup(ParsingController.DataStruct data) {
+        Map<String, String> paramMap = dataStructToMap(data);
+        AuthService authService = new TestAuthService(); // 실제 구현체 사용
+        boolean result = authService.signup(paramMap);
+        return result ? "[회원가입 완료]" : "[회원가입 실패]";
+    }
+
+    private static Map<String, String> dataStructToMap(ParsingController.DataStruct data) {
+    }
+
 }

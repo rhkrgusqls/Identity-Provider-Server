@@ -59,6 +59,8 @@ public class ParsingController {
                     System.err.println("[Netty] Error getting product list: " + e.getMessage());
                     return "productList%error%Database error\n";
                 }
+            case "SIGNUP":
+                return controller.signup(data);
             default:
                 return "error%UnknownOpcode";
         }
