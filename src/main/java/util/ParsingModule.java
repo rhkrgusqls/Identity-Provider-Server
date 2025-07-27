@@ -23,10 +23,16 @@ public class ParsingModule {
         Map<String, List<String>> tempMap = new HashMap<>();
 
         int firstPercent = input.indexOf('%');
-        int lastPercent = input.lastIndexOf('%');
-
-        if (firstPercent == -1 || lastPercent == -1 || firstPercent >= lastPercent) {
+        
+        if (firstPercent == -1) {
             return data;
+        }
+
+        // 마지막 %가 없으면 문자열 끝까지 사용
+        int lastPercent = input.lastIndexOf('%');
+        if (lastPercent == firstPercent) {
+            // 마지막 %가 없으면 문자열 끝까지 사용
+            lastPercent = input.length();
         }
 
         String dataSection = input.substring(firstPercent + 1, lastPercent);

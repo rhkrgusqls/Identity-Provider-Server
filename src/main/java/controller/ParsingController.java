@@ -22,6 +22,10 @@ public class ParsingController {
 
         switch (opcode) {
             case "LOGIN":
+                // null 체크 추가
+                if (data.id == null || data.id.length == 0 || data.password == null || data.password.length == 0) {
+                    return "login%error%Missing id or password\n";
+                }
                 return controller.login(data.id[0], data.password[0]);
             case "GET_REFRESH_PUBLIC_KEY":
                 return controller.getRefreshTokenPublicKey();
