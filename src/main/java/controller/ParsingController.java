@@ -1,6 +1,9 @@
 package controller;
 import util.ParsingModule;
 import controller.MainController;
+import model.ProductDAO;
+import model.Product;
+import java.util.List;
 
 import java.util.Map;
 
@@ -29,6 +32,33 @@ public class ParsingController {
                 return controller.login(data.id[0], data.password[0]);
             case "GET_REFRESH_PUBLIC_KEY":
                 return controller.getRefreshTokenPublicKey();
+            case "GET_PRODUCT_LIST":
+                try {
+                    ProductDAO productDAO = new ProductDAO();
+                    List<Product> products = productDAO.getAllProducts();
+                    
+                    if (products.isEmpty()) {
+                        return "productList%error%No products found\n";
+                    }
+                    
+                    StringBuilder response = new StringBuilder("productList%&products$");
+                    for (int i = 0; i < products.size(); i++) {
+                        Product product = products.get(i);
+                        if (i > 0) response.append("|");
+                        response.append(product.getProductID()).append(",")
+                                .append(product.getProductName()).append(",")
+                                .append(product.getProductStock()).append(",")
+                                .append(product.getProductPrice());
+                    }
+                    response.append("\n");
+                    
+                    System.out.println("[Netty] Send product list: " + products.size() + " products");
+                    return response.toString();
+                    
+                } catch (Exception e) {
+                    System.err.println("[Netty] Error getting product list: " + e.getMessage());
+                    return "productList%error%Database error\n";
+                }
             default:
                 return "error%UnknownOpcode";
         }

@@ -8,6 +8,7 @@ public class ProductDTO {
 	private int productId;
 	private String productName;
 	private int productStock;
+	private int productPrice;
 
     public String getProductName() {
 		return productName;
@@ -28,13 +29,18 @@ public class ProductDTO {
 	public int getProductId() { return productId; }
 
 	public void setProductId(int productId) { this.productId = productId; }
+	
+	public int getProductPrice() { return productPrice; }
+
+	public void setProductPrice(int productPrice) { this.productPrice = productPrice; }
 
 	public ProductDTO() {}
 
-	public ProductDTO(int productId, String productName, int productStock) {
+	public ProductDTO(int productId, String productName, int productStock, int productPrice) {
         this.productId = productId;
 		this.productName = productName;
         this.productStock = productStock;
+        this.productPrice = productPrice;
     }
 
 }

@@ -9,6 +9,8 @@ public class Product {
 
 	private int productStock;
 	
+	private int productPrice;
+	
 	
 	public int getProductID() {
 		return productID;
@@ -29,6 +31,13 @@ public class Product {
 	}
 	public void setProductStock(int productStock) {
 		this.productStock = productStock;
+	}
+	
+	public int getProductPrice() {
+		return productPrice;
+	}
+	public void setProductPrice(int productPrice) {
+		this.productPrice = productPrice;
 	}
 	
 	

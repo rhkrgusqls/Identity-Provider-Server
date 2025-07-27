@@ -10,12 +10,13 @@ public class ProductDAO {
 
     // 상품 추가 (DTO를 받아 DB에 저장)
     public void addProduct(ProductDTO productDto) {
-        String sql = "INSERT INTO products (productName, productStock) VALUES (?, ?)";
+        String sql = "INSERT INTO product (productName, productStock, productPrice) VALUES (?, ?, ?)";
         try (Connection conn = dbModule.getConnection("productdb"); // "productdb" 스키마 사용
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, productDto.getProductName());
             pstmt.setInt(2, productDto.getProductStock());
+            pstmt.setInt(3, productDto.getProductPrice());
             pstmt.executeUpdate();
 
         } catch (Exception e) {
@@ -26,7 +27,7 @@ public class ProductDAO {
     // 모든 상품 조회 (DB 데이터를 product 객체 리스트로 반환)
     public List<Product> getAllProducts() {
         List<Product> productList = new ArrayList<>();
-        String sql = "SELECT * FROM products";
+        String sql = "SELECT * FROM product";
         try (Connection conn = dbModule.getConnection("productdb");
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
@@ -36,6 +37,7 @@ public class ProductDAO {
                 p.setProductID(rs.getInt("productID"));
                 p.setProductName(rs.getString("productName"));
                 p.setProductStock(rs.getInt("productStock"));
+                p.setProductPrice(rs.getInt("productPrice"));
                 productList.add(p);
             }
 
@@ -46,7 +48,7 @@ public class ProductDAO {
     }
 
     public Product getProductById(int productId) {
-        String sql = "SELECT * FROM products WHERE productID = ?";
+        String sql = "SELECT * FROM product WHERE productID = ?";
         try (Connection conn = dbModule.getConnection("productdb");
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -59,6 +61,7 @@ public class ProductDAO {
                     product.setProductID(rs.getInt("productID"));
                     product.setProductName(rs.getString("productName"));
                     product.setProductStock(rs.getInt("productStock"));
+                    product.setProductPrice(rs.getInt("productPrice"));
                     return product; // 정보가 담긴 객체 반환
                 }
             }
