@@ -9,6 +9,12 @@ public interface AuthService {
         return authenticate(sb.toString());
     }
 
+    // 로그인 메서드 추가
+    default boolean login(java.util.Map<String, String> params) {
+        // 실제 구현체에서 DB 인증 로직 구현
+        return authenticate(params);
+    }
+
     // 회원가입용 메서드 (임시)
     default boolean signup(java.util.Map<String, String> params) {
         // 실제 구현체에서 DB 중복 체크, 비밀번호 해시, 저장 등 구현 예정

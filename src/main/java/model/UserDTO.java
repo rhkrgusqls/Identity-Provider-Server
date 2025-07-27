@@ -28,7 +28,12 @@ public class UserDTO {
         this.userPassword = userPassword;
     }
 
-    public UserDTO(String userID, String userPassword) {}
+    public UserDTO() {}
+    
+    public UserDTO(String userID, String userPassword) {
+        this.userID = userID;
+        this.userPassword = userPassword;
+    }
 
     public UserDTO(String userID, String userPassword, String userAddress) {
         this.userID = userID;
